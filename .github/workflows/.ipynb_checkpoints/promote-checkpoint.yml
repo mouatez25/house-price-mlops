@@ -1,0 +1,24 @@
+name: Promote to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  promote-model:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Promote Model to Prod
+      run: python src/promote.py
