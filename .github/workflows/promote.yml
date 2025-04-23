@@ -1,16 +1,19 @@
-name: Promote to Production
+
+name: Validate and Promote to Production
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
 
 jobs:
-  promote-model:
+  validate-and-promote:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -18,7 +21,14 @@ jobs:
         python-version: '3.9'
 
     - name: Install dependencies
-      run: pip install -r requirements.txt
+      run: |
+        pip install -r requirements.txt
 
-    - name: Promote Model to Prod
-      run: python src/promote.py
+    - name: Validate staging model
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        python -c "from validate import validate_model; validate_model(stage='staging', threshold=30000)"
+
+    - name: Promote to production
+      run: |
+        python src/promote.py
