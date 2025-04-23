@@ -1,0 +1,2 @@
+2025-04-23 10:05:41 | TRAIN | model=RandomForestRegressor | MAE=29081.30 | saved=dev
+2025-04-23 10:06:00 | TRAIN | model=RandomForestRegressor | MAE=29081.30 | saved=dev
