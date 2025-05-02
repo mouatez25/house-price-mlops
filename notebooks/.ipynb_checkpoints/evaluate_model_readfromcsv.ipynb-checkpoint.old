@@ -1,0 +1,137 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "0fde92d0",
+   "metadata": {},
+   "source": [
+    "# 📒 Regression Model Evaluation Notebook"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c84618bf",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import pandas as pd\n",
+    "from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score\n",
+    "from src.evaluate_model import evaluate_model, plot_predictions\n",
+    "import joblib"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "4aad3263",
+   "metadata": {},
+   "source": [
+    "## Step 2: Load test data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ecd3f70f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_test = pd.read_csv(\"data/X_test.csv\")\n",
+    "y_test = pd.read_csv(\"data/y_test.csv\").squeeze()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "540a718b",
+   "metadata": {},
+   "source": [
+    "## Step 3: Load trained model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "7e43754e",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model = joblib.load(\"models/dev/house_price_model.pkl\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "b024c6b4",
+   "metadata": {},
+   "source": [
+    "## Step 4: Make predictions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "0d12e763",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y_pred = model.predict(X_test)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3c35e2a8",
+   "metadata": {},
+   "source": [
+    "## Step 5: Evaluate the model"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ac8b7dc0",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "metrics = evaluate_model(y_test, y_pred, model_name=\"house_price_model_v1\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6cde809f",
+   "metadata": {},
+   "source": [
+    "## Step 6: Visualize the results"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e7526d82",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plot_predictions(y_test, y_pred)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5912b7b5",
+   "metadata": {},
+   "source": [
+    "### (Optional) Step 7: Save metrics manually if needed"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "dd2f0ad3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# pd.DataFrame([metrics]).to_csv(\"logs/latest_eval.csv\", index=False)"
+   ]
+  }
+ ],
+ "metadata": {},
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

@@ -5,33 +5,61 @@ from sklearn.metrics import mean_absolute_error
 import joblib
 from datetime import datetime
 import os
+import mlflow
+import mlflow.sklearn
 
 def train_model():
+    # Setup MLflow
+    mlflow.set_tracking_uri("http://127.0.0.1:5000")
+    mlflow.set_experiment("Regression_House_Price_Prediction_Models")
+
+    # Load dataset
     df = pd.read_csv("data/house_price_data.csv")
     X = df.drop("price", axis=1)
     y = df["price"]
 
+    # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    model = RandomForestRegressor(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
+    # Start MLflow run
+    with mlflow.start_run() as run:
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        model.fit(X_train, y_train)
 
-    preds = model.predict(X_test)
-    mae = mean_absolute_error(y_test, preds)
+        preds = model.predict(X_test)
+        mae = mean_absolute_error(y_test, preds)
 
-    os.makedirs("models/dev", exist_ok=True)
-    joblib.dump(model, "models/dev/house_price_model.pkl")
+        # Save model locally
+        os.makedirs("models/dev", exist_ok=True)
+        model_path = "models/dev/house_price_model.pkl"
+        joblib.dump(model, model_path)
 
-    # Logging
-    os.makedirs("logs", exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    log_entry = f"{timestamp} | TRAIN | model=RandomForestRegressor | MAE={mae:.2f} | saved=dev\n"
+        # Save test sets
+        os.makedirs("data", exist_ok=True)
+        X_test_path = "../data/X_test.csv"
+        y_test_path = "../data/y_test.csv"
+        X_test.to_csv(X_test_path, index=False)
+        y_test.to_csv(y_test_path, index=False)
 
-    with open("logs/train_log.txt", "a") as f:
-        f.write(log_entry)
+        # Save log entry
+        os.makedirs("logs", exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        log_entry = f"{timestamp} | TRAIN | model=RandomForestRegressor | MAE={mae:.2f} | saved=dev\n"
+        with open("logs/train_log.txt", "a") as f:
+            f.write(log_entry)
 
-    print("✅ Model trained and saved to dev.")
-    print(log_entry.strip())
+        # MLflow logging
+        mlflow.log_param("n_estimators", 100)
+        mlflow.log_metric("MAE", mae)
+        mlflow.sklearn.log_model(model, "house_price_model_dev")
+
+        # Log test sets as artifacts so evaluation scripts can access them
+        mlflow.log_artifact(X_test_path)
+        mlflow.log_artifact(y_test_path)
+
+        print("✅ Model trained and saved to dev.")
+        print(log_entry.strip())
+        print(f"🔗 MLflow Run ID: {run.info.run_id}")
 
 if __name__ == "__main__":
     train_model()
